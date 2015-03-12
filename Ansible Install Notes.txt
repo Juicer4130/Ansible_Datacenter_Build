@@ -1,1 +1,22 @@
 #Ansible Install Notes
+
+#Ubuntu
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install ansible
+
+
+
+#Edit /etc/ansible/hosts and add the following 
+[local]
+127.0.0.1
+
+#Create the following directory structure:
+[gituser@ip RTR-TEMPLATE]$ find . -type d
+.
+./roles
+./roles/router
+./roles/router/vars
+./roles/router/templates
+./roles/router/tasks
