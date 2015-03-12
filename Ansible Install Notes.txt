@@ -14,9 +14,18 @@ sudo apt-get install ansible
 
 #Create the following directory structure:
 [gituser@ip RTR-TEMPLATE]$ find . -type d
-.
-./roles
-./roles/router
-./roles/router/vars
-./roles/router/templates
-./roles/router/tasks
+
+cd ~
+mkdir ANSIBLE
+cd ANSIBLE
+mkdir CFGS
+mkdir RTR-TEMPLATE
+cd RTR-TEMPLATE
+mkdir roles
+cd roles
+mkdir router
+cd router
+mkdir vars
+mkdir templates
+mkdir tasks
+
