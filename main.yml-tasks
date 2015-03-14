@@ -1,0 +1,4 @@
+---
+- name: Generate configuration files
+  template: src=router.j2 dest=/home/juice/ANSIBLE/CFGS/{{item.hostname}}.txt
+  with_items: NASA_test_routers
