@@ -1,0 +1,442 @@
+
+
+
+===================================================
+Intellinet hosting environment {{item.hostname}}
+===================================================
+
+===================================================
+Customer Abbreviation {{item.Cust_ABBR}}
+Cleveland Pri ASA {{item.Cle_ASA_Pri_IP}}
+Cleveland Sec ASA {{item.Cle_ASA_Sec_IP}}
+Columbus Pri ASA  {{item.Col_ASA_Pri_IP}}
+Columbus Sec ASA  {{item.Col_ASA_Sec_IP}}
+Southbound Vlan Name {{item.SB_Vlan_Name}}
+Southbound Vlan ID {{item.SB_Vlan_ID}}
+Southbound Network {{item.SB_Network}}
+Northbound Vlan Name {{item.NB_Vlan_Name}}
+Northbound Vlan ID {{item.NB_Vlan_ID}}
+VRRP Southbound {{item.VRRP_SB}}
+VRRP Southbound {{item.VRRP_SB_IP}}
+VRRP Northbound {{item.VRRP_NB}}
+VRRP Northbound {{item.VRRP_NB_IP}}
+Columbus CS1 Northbound IP {{item.Col_CS1_NB}}
+Columbus CS1 Southbound IP {{item.Col_CS1_SB}}
+Cleveland CS1 Northbound IP {{item.Cle_CS1_NB}}
+Cleveland CS1 Southbound IP {{item.Cle_CS1_SB}}
+Cleveland CS2 Northbound IP {{item.Cle_CS2_NB}}
+Cleveland CS2 Southbound IP {{item.Cle_CS2_SB}}
+===================================================
+
+
+==========================
+# Cleveland ASA
+==========================
+interface Port-channel2.{{item.NB_Vlan_ID}}
+ vlan {{item.NB_Vlan_ID}}
+ nameif {{item.Cust_ABBR}}
+ security-level 75
+ ip address {{item.Cle_ASA_Pri_IP}} 255.255.255.240 standby {{item.Cle_ASA_Sec_IP}}
+ summary-address eigrp 205 0.0.0.0 0.0.0.0 250
+
+access-list {{item.Cust_ABBR}}-inside extended deny tcp any any eq 25
+access-list {{item.Cust_ABBR}}-inside extended deny ip any 10.0.0.0 255.0.0.0
+access-list {{item.Cust_ABBR}}-inside extended deny ip any 192.168.0.0 255.255.0.0
+access-list {{item.Cust_ABBR}}-inside extended deny ip any 172.16.0.0 255.240.0.0
+access-list {{item.Cust_ABBR}}-inside extended permit ip any any
+
+access-group {{item.Cust_ABBR}}-inside in interface {{item.Cust_ABBR}}
+
+object network {{item.SB_Network}}-24
+subnet {{item.SB_Network}} 255.255.255.0
+nat ({{item.Cust_ABBR}},outside) dynamic (new IP address)
+
+dynamic-filter enable interface {{item.Cust_ABBR}}
+dynamic-filter drop blacklist interface {{item.Cust_ABBR}}
+
+router eigrp 205
+network {{item.Cle_ASA_Pri_IP}} 255.255.255.255  -------------------({{item.Cust_ABBR}} nameif IP address)
+
+
+==========================
+#CS1.strlng-Enterprise
+==========================
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}} 
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+vrf context {{item.Cust_ABBR}}
+
+ip prefix-list {{item.Cust_ABBR}}-Offset seq 5 permit {{item.Col_ASA_Pri_IP}}/32 ---------------(COL ASA active IP)
+
+route-map {{item.Cust_ABBR}}-Offset permit 10
+  match ip next-hop prefix-list {{item.Cust_ABBR}}-Offset
+
+  router eigrp 205
+    vrf {{item.Cust_ABBR}}
+    stub direct summary redistributed
+    router-id {{item.Cle_CS1_NB}}  --------------(IP of Northbound interface)
+
+interface Vlan {{item.SB_Vlan_ID}}
+  ip flow monitor standard_v9 input
+  vrf member {{item.Cust_ABBR}}
+  no ip redirects
+  ip address {{item.Col_CS1_SB}}/24
+  ip router eigrp 205
+  ip passive-interface eigrp 205
+  description {{item.SB_Vlan_Name}}-SB
+  no shutdown
+  vrrp {{item.VRRP_SB}}
+    priority 105
+    address {{item.VRRP_SB_IP}}
+    no shutdown
+
+interface Vlan {{item.NB_Vlan_ID}}
+  ip flow monitor standard_v9 input
+  vrf member {{item.Cust_ABBR}}
+  no ip redirects
+  ip address {{item.Cle_CS1_NB}}/28
+  ip router eigrp 205
+  description {{item.NB_Vlan_Name}}-NB
+  no shutdown
+  vrrp {{item.VRRP_NB}}
+    priority 105
+    address {{item.VRRP_NB_IP}}
+    no shutdown
+
+#Add vlan {{item.SB_Vlan_ID}} {{item.SB_Vlan_Name}} to Po 1 and 20
+interface port-channel 1
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 20
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+#Add vlan {{item.NB_Vlan_ID}} {{item.NB_Vlan_Name}} to Po 3 and 4
+interface port-channel 3
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+interface port-channel 4
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+#ether 3/11
+add both {{item.Cust_ABBR}} vlans to the trunk
+
+
+==========================
+#CS1-strlng-OTV
+==========================
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+interface overlay 1
+otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
+
+
+==========================
+#CS2.strlng-Enterprise
+==========================
+
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+vrf context {{item.Cust_ABBR}}
+
+ip prefix-list {{item.Cust_ABBR}}-Offset seq 5 permit {{item.Col_ASA_Pri_IP}}/32 ---------------(COL ASA active IP)
+
+route-map {{item.Cust_ABBR}}-Offset permit 10
+  match ip next-hop prefix-list {{item.Cust_ABBR}}-Offset
+
+router eigrp 205
+vrf {{item.Cust_ABBR}}
+stub direct summary redistributed
+    router-id {{item.Cle_CS2_NB}}  (northbound vlan)
+
+interface Vlan {{item.SB_Vlan_ID}}
+  ip flow monitor standard_v9 input
+  vrf member {{item.Cust_ABBR}}
+  no ip redirects
+  ip address {{item.Cle_CS2_SB}}/24
+  ip router eigrp 205
+  ip passive-interface eigrp 205
+  description {{item.SB_Vlan_Name}}
+  no shutdown
+  vrrp {{item.VRRP_SB}}
+    priority 110
+    address {{item.VRRP_SB_IP}}
+    no shutdown
+
+interface Vlan {{item.NB_Vlan_ID}}
+  ip flow monitor standard_v9 input
+  vrf member {{item.Cust_ABBR}}
+  no ip redirects
+  ip address {{item.Cle_CS2_NB}}/28
+ip router eigrp 205
+  description {{item.NB_Vlan_Name}}
+  no shutdown
+  vrrp {{item.VRRP_SB}}
+    priority 110
+    address {{item.VRRP_SB_IP}}
+    no shutdown
+
+
+#Add vlan {{item.SB_Vlan_ID}} {{item.SB_Vlan_Name}} to Po 1 and 20
+interface port-channel 1 
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 20
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+#Add vlan {{item.NB_Vlan_ID}} {{item.NB_Vlan_Name}} to Po 3 and 4
+interface port-channel 3 
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+interface port-channel 4 
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+#ether 3/11
+add both {{item.Cust_ABBR}} vlans to the trunk
+
+
+==========================
+#CS2.strlng-OTV
+==========================
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+interface overlay 1
+otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
+
+
+==========================
+ DS1.strlng 
+==========================
+
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+interface port-channel 1
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 2
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 3
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 4
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+
+==========================
+ DS2.strlng 
+==========================
+
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+interface port-channel 1
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 2
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 3
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 4
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}} 
+ 
+
+==========================
+ DS3.strlng 
+========================== 
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+interface port-channel 3
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+interface port-channel 4
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+interface port-channel 5
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+interface port-channel 6
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+
+==========================
+cs1.535she-Enterprise 
+==========================
+
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+vrf context {{item.Cust_ABBR}}
+
+ip prefix-list {{item.Cust_ABBR}}-Offset seq 5 permit {{item.Cle_ASA_Pri_IP}}/32  --------(Cleveland ASA IP)
+
+route-map {{item.Cust_ABBR}}-Offset permit 10
+  match ip next-hop prefix-list {{item.Cust_ABBR}}-Offset
+  
+ router eigrp 205
+ vrf {{item.Cust_ABBR}}
+ stub direct summary redistributed
+    router-id {{item.Col_CS1_NB}} -----------------------(northbound vlan IP)
+
+
+interface Vlan {{item.SB_Vlan_ID}}
+  vrf member {{item.Cust_ABBR}}
+  no ip redirects
+  ip address {{item.Col_CS1_SB}}/24
+  ip router eigrp 205
+  ip passive-interface eigrp 205
+  description {{item.SB_Vlan_Name}}
+  no shutdown
+  vrrp {{item.VRRP_SB}}
+    priority 50
+    address {{item.VRRP_SB_IP}}
+    no shutdown
+
+interface Ethernet3/11
+add both {{item.Cust_ABBR}} vlans to the trunk
+
+interface Vlan {{item.NB_Vlan_ID}}
+  vrf member {{item.Cust_ABBR}}
+  no ip redirects
+  ip address {{item.Col_CS1_NB}}/28
+  ip router eigrp 205
+  ip offset-list eigrp 205 route-map {{item.Cust_ABBR}}-Offset out 10
+  ip offset-list eigrp 205 route-map {{item.Cust_ABBR}}-Offset in 10
+  description {{item.NB_Vlan_Name}}
+  no shutdown
+
+interface port-channel 1
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 3
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
+
+
+==========================
+DS1.she
+==========================
+
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+interface port-channel 2
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 3
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface ethernet 1/17
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+
+==========================
+DS2.she 
+==========================
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+interface port-channel 2
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface port-channel 3
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+interface ethernet 1/17
+switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
+
+
+==========================
+#CS1.she-OTV
+==========================
+#create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
+vlan {{item.SB_Vlan_ID}}
+name {{item.SB_Vlan_Name}}
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+interface overlay 1
+otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
+
+==========================
+#Columbus ASA
+==========================
+interface Port-channel2.{{item.NB_Vlan_ID}}
+ vlan {{item.NB_Vlan_ID}}
+ nameif {{item.Cust_ABBR}}
+ security-level 75
+ ip address {{item.Col_ASA_Pri_IP}} 255.255.255.240 standby {{item.Col_ASA_Sec_IP}}
+ summary-address eigrp 205 0.0.0.0 0.0.0.0 250
+
+router eigrp 205
+network {{item.Col_ASA_Pri_IP}} 255.255.255.255
+ 
+access-list {{item.Cust_ABBR}}-inside extended deny tcp any any eq 25
+access-list {{item.Cust_ABBR}}-inside extended deny ip any 10.0.0.0 255.0.0.0
+access-list {{item.Cust_ABBR}}-inside extended deny ip any 192.168.0.0 255.255.0.0
+access-list {{item.Cust_ABBR}}-inside extended deny ip any 172.16.0.0 255.240.0.0
+access-list {{item.Cust_ABBR}}-inside extended permit ip any any
+
+access-group {{item.Cust_ABBR}}-inside in interface {{item.Cust_ABBR}}
+
+object network {{item.SB_Network}}-24
+subnet {{item.SB_Network}} 255.255.255.0
+nat ({{item.Cust_ABBR}},outside) dynamic (new IP address)
+
+dynamic-filter enable interface {{item.Cust_ABBR}}
+dynamic-filter drop blacklist interface {{item.Cust_ABBR}}
+
+ 
+==========================
+#Columbus 3750 stack
+==========================
+
+#create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
+vlan {{item.NB_Vlan_ID}}
+name {{item.NB_Vlan_Name}}
+
+interface port-channel 3
+switchport trunk allowed vlan {{item.NB_Vlan_ID}}
+
+interface port-channel 4
+switchport trunk allwed vlan add {{item.NB_Vlan_ID}}
+
+(Port-Channel 2 does not have a trunk allowed list on it)
+
