@@ -1,0 +1,9 @@
+---
+test_routers:
+      - { hostname: "TEST_Customer_Build", Cust_ABBR: TEST, SB_Network: 10.38.7.0, SB_Vlan_Name: TEST-SB, SB_Vlan_ID: 288, NB_Vlan_Name: TEST-NB, NB_Vlan_ID: 289, Cle_ASA_Pri_IP: 10.38.8.4, Cle_ASA_Sec_IP: 10.38.8.5, Col_ASA_Pri_IP: 10.38.8.7, Col_ASA_Sec_IP: 10.38.8.8, Cle_CS1_NB: 10.38.8.3, Cle_CS1_SB: 10.38.7.3, Cle_CS2_NB: 10.38.8.2, Cle_CS2_SB: 10.38.7.2, Col_CS1_NB: 10.38.8.6, Col_CS1_SB: 10.38.7.6, VRRP_SB_IP: 10.38.7.1, VRRP_NB_IP: 10.38.8.1, VRRP_SB: 92, VRRP_NB: 93 } 
+
+Kevin_test_routers:
+      - { hostname: "Kevin_Customer_Build", Cust_ABBR: KCB SB_Network: 10.38.7.0, SB_Vlan_Name: KCB-SB, SB_Vlan_ID: 288, NB_Vlan_Name: KCB-NB, NB_Vlan_ID: 289, Cle_ASA_Pri_IP: 10.38.8.4, Cle_ASA_Sec_IP: 10.38.8.5, Col_ASA_Pri_IP: 10.38.8.7, Col_ASA_Sec_IP: 10.38.8.8, Cle_CS1_NB: 10.38.8.3, Cle_CS1_SB: 10.38.7.3, Cle_CS2_NB: 10.38.8.2, Cle_CS2_SB: 10.38.7.2, Col_CS1_NB: 10.38.8.6, Col_CS1_SB: 10.38.7.6, VRRP_SB_IP: 10.38.7.1, VRRP_NB_IP: 10.38.8.1, VRRP_SB: 92, VRRP_NB: 93 } 
+
+NASA_test_routers:
+      - { hostname: "NASA_Customer_Build", Cust_ABBR: NASA, SB_Network: 10.38.7.0, SB_Vlan_Name: NASA-SB, SB_Vlan_ID: 288, NB_Vlan_Name: NASA-NB, NB_Vlan_ID: 289, Cle_ASA_Pri_IP: 10.38.8.4, Cle_ASA_Sec_IP: 10.38.8.5, Col_ASA_Pri_IP: 10.38.8.7, Col_ASA_Sec_IP: 10.38.8.8, Cle_CS1_NB: 10.38.8.3, Cle_CS1_SB: 10.38.7.3, Cle_CS2_NB: 10.38.8.2, Cle_CS2_SB: 10.38.7.2, Col_CS1_NB: 10.38.8.6, Col_CS1_SB: 10.38.7.6, VRRP_SB_IP: 10.38.7.1, VRRP_NB_IP: 10.38.8.1, VRRP_SB: 92, VRRP_NB: 93 } 
