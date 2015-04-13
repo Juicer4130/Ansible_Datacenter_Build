@@ -227,7 +227,7 @@ otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
 
 
 ==========================
- DS1.strlng 10.30.0.50
+ DS1.strlng
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -248,7 +248,7 @@ switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
 
 
 ==========================
- DS2.strlng - 10.30.0.51
+ DS2.strlng 
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -269,7 +269,7 @@ switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
  
 
 ==========================
- DS3.strlng - 10.28.0.4
+ DS3.strlng 
 ========================== 
 #create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
 vlan {{item.NB_Vlan_ID}}
@@ -289,7 +289,7 @@ switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
 
 
 ==========================
-cs1.535she-Enterprise 10.31.0.120
+cs1.535she-Enterprise 
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -347,7 +347,7 @@ switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
 
 
 ==========================
-DS1.she - 10.35.0.123
+DS1.she 
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -365,7 +365,7 @@ switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
 
 
 ==========================
-DS2.she - 10.35.0.122
+DS2.she 
 ==========================
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
 vlan {{item.SB_Vlan_ID}}
@@ -397,8 +397,6 @@ otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
 
 ==========================
 #Columbus ASA
-ds2.535she.coloh# ssh kgiusti@10.31.0.1 vrf management
-#Outside IP address: 198.45.126.4
 ==========================
 interface Port-channel2.{{item.NB_Vlan_ID}}
  vlan {{item.NB_Vlan_ID}}
@@ -429,7 +427,6 @@ dynamic-filter drop blacklist interface {{item.Cust_ABBR}}
 ==========================
 #Columbus 3750 stack
 ==========================
-ds2.535she.coloh# telnet 10.31.0.101 vrf management
 
 #create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
 vlan {{item.NB_Vlan_ID}}
