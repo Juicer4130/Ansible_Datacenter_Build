@@ -85,10 +85,10 @@ interface Vlan {{item.SB_Vlan_ID}}
   ip flow monitor standard_v9 input
   vrf member {{item.Cust_ABBR}}
   no ip redirects
-  ip address {{item.Col_CS1_SB}}/24
+  ip address {{item.Cle_CS1_SB}}/24
   ip router eigrp 205
   ip passive-interface eigrp 205
-  description {{item.SB_Vlan_Name}}-SB
+  description {{item.SB_Vlan_Name}}
   no shutdown
   vrrp {{item.VRRP_SB}}
     priority 105
@@ -101,7 +101,7 @@ interface Vlan {{item.NB_Vlan_ID}}
   no ip redirects
   ip address {{item.Cle_CS1_NB}}/28
   ip router eigrp 205
-  description {{item.NB_Vlan_Name}}-NB
+  description {{item.NB_Vlan_Name}}
   no shutdown
   vrrp {{item.VRRP_NB}}
     priority 105
@@ -187,9 +187,9 @@ interface Vlan {{item.NB_Vlan_ID}}
 ip router eigrp 205
   description {{item.NB_Vlan_Name}}
   no shutdown
-  vrrp {{item.VRRP_SB}}
+  vrrp {{item.VRRP_NB}}
     priority 110
-    address {{item.VRRP_SB_IP}}
+    address {{item.VRRP_NB_IP}}
     no shutdown
 
 
@@ -227,7 +227,7 @@ otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
 
 
 ==========================
- DS1.strlng 
+ DS1.strlng 10.30.0.50
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -248,7 +248,7 @@ switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
 
 
 ==========================
- DS2.strlng 
+ DS2.strlng - 10.30.0.51
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -269,7 +269,7 @@ switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
  
 
 ==========================
- DS3.strlng 
+ DS3.strlng - 10.28.0.4
 ========================== 
 #create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
 vlan {{item.NB_Vlan_ID}}
@@ -289,7 +289,7 @@ switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
 
 
 ==========================
-cs1.535she-Enterprise 
+cs1.535she-Enterprise 10.31.0.120
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -347,7 +347,7 @@ switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
 
 
 ==========================
-DS1.she
+DS1.she - 10.35.0.123
 ==========================
 
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
@@ -365,7 +365,7 @@ switchport trunk allowed vlan add {{item.SB_Vlan_ID}}
 
 
 ==========================
-DS2.she 
+DS2.she - 10.35.0.122
 ==========================
 #create vlan {{item.SB_Vlan_ID}} {{item.Cust_ABBR}}-SB
 vlan {{item.SB_Vlan_ID}}
@@ -397,6 +397,8 @@ otv extend-vlan add {{item.SB_Vlan_ID}},{{item.NB_Vlan_ID}}
 
 ==========================
 #Columbus ASA
+ds2.535she.coloh# ssh kgiusti@10.31.0.1 vrf management
+#Outside IP address: 198.45.126.4
 ==========================
 interface Port-channel2.{{item.NB_Vlan_ID}}
  vlan {{item.NB_Vlan_ID}}
@@ -427,16 +429,17 @@ dynamic-filter drop blacklist interface {{item.Cust_ABBR}}
 ==========================
 #Columbus 3750 stack
 ==========================
+ds2.535she.coloh# telnet 10.31.0.101 vrf management
 
 #create vlan {{item.NB_Vlan_ID}} {{item.Cust_ABBR}}-NB
 vlan {{item.NB_Vlan_ID}}
 name {{item.NB_Vlan_Name}}
 
 interface port-channel 3
-switchport trunk allowed vlan {{item.NB_Vlan_ID}}
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
 
 interface port-channel 4
-switchport trunk allwed vlan add {{item.NB_Vlan_ID}}
+switchport trunk allowed vlan add {{item.NB_Vlan_ID}}
 
 (Port-Channel 2 does not have a trunk allowed list on it)
 
